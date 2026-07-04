@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploring Google AI Studio with Gemini</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        googleBlue: '#4285F4',
+                        googleRed: '#EA4335',
+                        googleYellow: '#FBBC05',
+                        googleGreen: '#34A853',
+                        textMain: '#202124',
+                        textMuted: '#5f6368',
+                        surfaceLight: '#f8f9fa',
+                        borderLight: '#dadce0'
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"Fira Code"', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #ffffff;
+            color: #202124;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+            transform: translateY(20px);
+            display: flex;
+            flex-direction: column;
+            padding: 2rem;
+            padding-bottom: 6rem;
+            /* space for footer */
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        /* Custom Scrollbar Light */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f8f9fa;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #dadce0;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #bdc1c6;
+        }
+
+        .clean-card {
+            background: #ffffff;
+            border: 1px solid #dadce0;
+            border-radius: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .poll-option.selected {
+            background: #e8f0fe;
+            border-color: #4285F4;
+        }
+
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(90deg, #4285F4, #EA4335, #FBBC05, #34A853);
+        }
+
+        /* Timer Animation */
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0.2);
+            }
+
+            70% {
+                box-shadow: 0 0 0 20px rgba(66, 133, 244, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(66, 133, 244, 0);
+            }
+        }
+
+        .timer-active {
+            animation: pulse-ring 2s infinite;
+        }
+
+        /* Showcase slide animations */
+        @keyframes float-slow {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .float-slow {
+            animation: float-slow 3s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bounce {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .gentle-bounce {
+            animation: gentle-bounce 1.8s ease-in-out infinite;
+        }
+
+        .showcase-slot {
+            transition: all 0.3s ease;
+        }
+
+        .showcase-slot.taken {
+            background: #e8f0fe;
+            border-color: #4285F4;
+            border-style: solid;
+        }
+    </style>
+</head>
+
+<body class="h-screen w-screen relative">
+
+    <!-- SLIDES CONTAINER -->
+    <main id="slides-container" class="relative w-full h-full max-w-7xl mx-auto">
+
+        <!-- 1. OPENING SLIDE -->
+        <section class="slide active justify-center items-center text-center">
+            <div class="mb-6 inline-flex p-4 rounded-full bg-blue-50 border border-blue-100">
+                <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg"
+                    alt="Google" class="h-8">
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight">
+                Exploring <span class="text-gradient">Google AI Studio</span> with Gemini
+            </h1>
+            <p class="text-xl md:text-2xl text-textMuted mb-12 font-medium">Turning Ideas into AI-Powered Solutions</p>
+
+            <div class="clean-card p-6 inline-flex flex-col md:flex-row gap-8 items-center text-left">
+                <div class="flex items-center gap-4">
+                    <img src="potoo.jpeg" alt="Safira"
+                        class="w-16 h-16 rounded-full shadow-sm border border-gray-200 object-cover">
+                    <div>
+                        <h3 class="font-bold text-lg text-textMain">Safira Nur Azkia</h3>
+                        <p class="text-sm font-semibold text-googleBlue">Google Student Ambassador</p>
+                        <p class="text-xs text-textMuted mt-1">GSAID261639</p>
+                    </div>
+                </div>
+                <div class="w-px h-16 bg-borderLight hidden md:block"></div>
+                <div class="text-sm text-textMuted space-y-2 font-medium">
+                    <p><i class="fa-regular fa-calendar text-googleRed w-5 text-center"></i> Minggu, 5 Juli 2026</p>
+                    <p><i class="fa-regular fa-clock text-googleYellow w-5 text-center"></i> 10.30 WIB</p>
+                    <p><i class="fa-solid fa-location-dot text-googleGreen w-5 text-center"></i> R. A-109 STT Terpadu
+                        Nurul Fikri</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. ICE BREAKER (Yellow Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleYellow font-bold tracking-wider text-sm uppercase bg-yellow-50 px-4 py-1.5 rounded-full border border-yellow-200">
+                    <i class="fa-solid fa-hand-sparkles mr-2"></i>Ice Breaker
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5 text-textMain">Mari Saling Mengenal! 👋</h2>
+                <p class="text-textMuted mt-2 text-lg">Klik pernyataan di bawah ini yang paling menggambarkan diri kamu
+                    (bisa pilih >1).</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                <div class="poll-option clean-card p-8 cursor-pointer hover:shadow-md transition flex flex-col items-center text-center gap-4 group"
+                    onclick="this.classList.toggle('selected')">
+                    <div class="text-5xl group-hover:scale-110 transition duration-300">🤖</div>
+                    <h3 class="font-bold text-lg">AI Enthusiast</h3>
+                    <p class="text-sm text-textMuted">"Saya sudah pernah (atau sering) pakai AI Studio & berbagai tools
+                        AI lainnya."</p>
+                    <div class="check-icon hidden text-googleBlue text-2xl mt-2"><i
+                            class="fa-solid fa-circle-check"></i></div>
+                </div>
+                <div class="poll-option clean-card p-8 cursor-pointer hover:shadow-md transition flex flex-col items-center text-center gap-4 group"
+                    onclick="this.classList.toggle('selected')">
+                    <div class="text-5xl group-hover:scale-110 transition duration-300">💬</div>
+                    <h3 class="font-bold text-lg">The Prompter</h3>
+                    <p class="text-sm text-textMuted">"Sering pakai AI (Gemini/ChatGPT), tapi mentok cuma buat
+                        tanya-jawab tugas aja."</p>
+                    <div class="check-icon hidden text-googleBlue text-2xl mt-2"><i
+                            class="fa-solid fa-circle-check"></i></div>
+                </div>
+                <div class="poll-option clean-card p-8 cursor-pointer hover:shadow-md transition flex flex-col items-center text-center gap-4 group"
+                    onclick="this.classList.toggle('selected')">
+                    <div class="text-5xl group-hover:scale-110 transition duration-300">🚀</div>
+                    <h3 class="font-bold text-lg">The Builder</h3>
+                    <p class="text-sm text-textMuted">"Punya banyak ide gila dan pingin banget bikin produk/aplikasi
+                        berbasis AI sendiri!"</p>
+                    <div class="check-icon hidden text-googleBlue text-2xl mt-2"><i
+                            class="fa-solid fa-circle-check"></i></div>
+                </div>
+            </div>
+            <style>
+                .poll-option.selected .check-icon {
+                    display: block;
+                }
+            </style>
+        </section>
+
+        <!-- 3. KONTEKS / LATAR BELAKANG (Blue Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleBlue font-bold tracking-wider text-sm uppercase bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                    <i class="fa-solid fa-globe mr-2"></i>Konteks
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Lebih dari Sekadar Tanya-Jawab</h2>
+                <p class="text-textMuted mt-2 text-lg">Era AI generatif bukan lagi soal "bertanya", tapi tentang
+                    "berkreasi". Mengapa ini penting?</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+                <!-- Blue -->
+                <div
+                    class="clean-card p-6 border-l-4 border-l-googleBlue flex items-start gap-4 hover:-translate-y-1 transition duration-300">
+                    <div class="bg-blue-50 p-3 rounded-full text-googleBlue"><i
+                            class="fa-solid fa-bolt text-xl w-6 text-center"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-1">Produktivitas 10x Lipat</h3>
+                        <p class="text-sm text-textMuted leading-relaxed">Otomatisasi tugas repetitif, merangkum jurnal
+                            panjang, hingga mempercepat penulisan kode atau draft proposal.</p>
+                    </div>
+                </div>
+                <!-- Red -->
+                <div
+                    class="clean-card p-6 border-l-4 border-l-googleRed flex items-start gap-4 hover:-translate-y-1 transition duration-300">
+                    <div class="bg-red-50 p-3 rounded-full text-googleRed"><i
+                            class="fa-solid fa-palette text-xl w-6 text-center"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-1">Katalis Kreativitas</h3>
+                        <p class="text-sm text-textMuted leading-relaxed">AI bukan pengganti seniman/kreator, melainkan
+                            <i>brainstorming buddy</i> yang siap diajak mikir 24/7 tanpa lelah.
+                        </p>
+                    </div>
+                </div>
+                <!-- Yellow -->
+                <div
+                    class="clean-card p-6 border-l-4 border-l-googleYellow flex items-start gap-4 hover:-translate-y-1 transition duration-300">
+                    <div class="bg-yellow-50 p-3 rounded-full text-googleYellow"><i
+                            class="fa-solid fa-puzzle-piece text-xl w-6 text-center"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-1">Problem Solving Cerdas</h3>
+                        <p class="text-sm text-textMuted leading-relaxed">Menganalisis data, mencari pola, dan menemukan
+                            solusi algoritmis untuk masalah kompleks di kampus maupun industri.</p>
+                    </div>
+                </div>
+                <!-- Green -->
+                <div
+                    class="clean-card p-6 border-l-4 border-l-googleGreen flex items-start gap-4 hover:-translate-y-1 transition duration-300">
+                    <div class="bg-green-50 p-3 rounded-full text-googleGreen"><i
+                            class="fa-solid fa-rocket text-xl w-6 text-center"></i></div>
+                    <div>
+                        <h3 class="font-bold text-xl mb-1">Investasi Karier Masa Depan</h3>
+                        <p class="text-sm text-textMuted leading-relaxed">Perusahaan tidak mencari orang yang "tahu AI",
+                            tapi mereka yang "bisa membangun solusi" menggunakan AI.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. APA ITU GOOGLE AI STUDIO (Red Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleRed font-bold tracking-wider text-sm uppercase bg-red-50 px-4 py-1.5 rounded-full border border-red-200">
+                    <i class="fa-solid fa-cubes mr-2"></i>Platform
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Apa itu Google AI Studio?</h2>
+                <p class="text-textMuted mt-2 text-lg">Bukan aplikasi chat biasa. Ini adalah "dapur" tempat developer
+                    dan kreator bereksperimen.<br> <span
+                        class="bg-surfaceLight px-2 py-1 rounded border border-borderLight mt-2 inline-block font-semibold text-textMain"><span
+                            class="text-googleBlue">Gemini App</span> = Chatting &nbsp;|&nbsp; <span
+                            class="text-googleRed">AI Studio</span> = Building</span></p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mt-4">
+                <div class="clean-card p-6 relative overflow-hidden group hover:shadow-md transition">
+                    <div
+                        class="absolute -bottom-4 -right-4 p-4 opacity-5 group-hover:scale-125 transition duration-500">
+                        <i class="fa-solid fa-terminal text-8xl text-googleBlue"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-googleBlue mb-2">1. Chat & Freeform Prompt</h3>
+                    <p class="text-sm text-textMuted relative z-10 leading-relaxed">Ruang eksperimen untuk mengatur
+                        "System Instructions" agar AI bertindak sesuai persona spesifik yang kita buat.</p>
+                </div>
+                <div class="clean-card p-6 relative overflow-hidden group hover:shadow-md transition">
+                    <div
+                        class="absolute -bottom-4 -right-4 p-4 opacity-5 group-hover:scale-125 transition duration-500">
+                        <i class="fa-solid fa-table-list text-8xl text-googleYellow"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-googleYellow mb-2">2. Structured Output</h3>
+                    <p class="text-sm text-textMuted relative z-10 leading-relaxed">Fitur memaksa model mengeluarkan
+                        format data yang rapi (seperti JSON/tabel) dengan memberikan contoh (Few-shot prompting).</p>
+                </div>
+                <div class="clean-card p-6 relative overflow-hidden group hover:shadow-md transition">
+                    <div
+                        class="absolute -bottom-4 -right-4 p-4 opacity-5 group-hover:scale-125 transition duration-500">
+                        <i class="fa-solid fa-microchip text-8xl text-googleGreen"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-googleGreen mb-2">3. Pilihan Model Bebas</h3>
+                    <p class="text-sm text-textMuted relative z-10 leading-relaxed">Akses langsung bereksperimen dengan
+                        berbagai model: <b>Gemini Flash</b> (cepat & efisien) hingga <b>Gemini Pro</b> (reasoning
+                        tingkat lanjut).</p>
+                </div>
+                <div class="clean-card p-6 relative overflow-hidden group hover:shadow-md transition">
+                    <div
+                        class="absolute -bottom-4 -right-4 p-4 opacity-5 group-hover:scale-125 transition duration-500">
+                        <i class="fa-solid fa-code text-8xl text-googleRed"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-googleRed mb-2">4. Get Code</h3>
+                    <p class="text-sm text-textMuted relative z-10 leading-relaxed">Prompt yang udah jadi bisa langsung
+                        di-export jadi kode siap pakai (Python, JavaScript, atau REST API).</p>
+                </div>
+            </div>
+
+            <!-- CTA Buttons -->
+            <div class="flex-1 flex items-end justify-center">
+                <div class="flex flex-wrap gap-4 justify-center mt-10 mb-2">
+                    <a href="https://aistudio.google.com" target="_blank"
+                        class="px-6 py-3 bg-googleBlue hover:bg-blue-700 text-white transition rounded-full font-bold shadow-md flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google AI Studio
+                    </a>
+                    <a href="https://ai.google.dev/docs" target="_blank"
+                        class="px-6 py-3 bg-white border border-borderLight hover:bg-gray-50 text-textMain transition rounded-full font-bold shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-book text-googleRed"></i> Baca Dokumentasi
+                    </a>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- 5. APA ITU GEMINI (Green Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleGreen font-bold tracking-wider text-sm uppercase bg-green-50 px-4 py-1.5 rounded-full border border-green-200">
+                    <i class="fa-solid fa-brain mr-2"></i>The Brain
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Di Balik Layar: Model Gemini</h2>
+                <p class="text-textMuted mt-2 text-lg">Gemini adalah model AI paling mumpuni dari Google. Dibangun
+                    secara "Multimodal" sejak awal.</p>
+            </header>
+ 
+            <div class="flex flex-col md:flex-row gap-6 items-stretch justify-center mt-2 h-full">
+                <div class="flex-1 clean-card overflow-hidden relative group" id="gemini-video-card">
+                    <!-- Poster / Thumbnail state -->
+                    <div id="video-poster"
+                        class="p-8 text-center bg-surfaceLight flex flex-col justify-center h-full cursor-pointer"
+                        onclick="playGeminiVideo()">
+                        <div class="flex justify-center gap-6 text-4xl mb-6">
+                            <i class="fa-solid fa-font text-googleBlue"></i>
+                            <i class="fa-regular fa-image text-googleRed"></i>
+                            <i class="fa-solid fa-headphones text-googleYellow"></i>
+                            <i class="fa-solid fa-video text-googleGreen"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-3 text-textMain">Native Multimodal</h3>
+                        <p class="text-sm text-textMuted leading-relaxed mb-6">
+                            Gemini tidak hanya membaca teks. Ia bisa "melihat" gambar, "menonton" video, "mendengar"
+                            audio, dan membaca kode pemrograman secara bersamaan.
+                        </p>
+                        <div
+                            class="inline-flex items-center gap-3 mx-auto bg-white border border-borderLight rounded-full pl-2 pr-5 py-2 shadow-sm group-hover:shadow-md group-hover:scale-105 transition">
+                            <span
+                                class="w-9 h-9 rounded-full bg-googleBlue flex items-center justify-center text-white"><i
+                                    class="fa-solid fa-play text-xs ml-0.5"></i></span>
+                            <span class="text-sm font-bold text-textMain">Putar Video Pengenalan Gemini</span>
+                        </div>
+                    </div>
+                    <!-- Video Player state (hidden by default) -->
+                    <div id="video-player-wrap" class="hidden absolute inset-0 bg-black">
+                        <!-- Ganti src di bawah dengan link video kamu (YouTube embed / mp4) -->
+                        <iframe id="gemini-video-frame" class="w-full h-full" src="" title="Pengenalan Gemini"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                        <button onclick="stopGeminiVideo()"
+                            class="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/90 hover:bg-white text-textMain flex items-center justify-center shadow-md z-10">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="clean-card p-5 flex flex-col justify-center border-l-4 border-l-googleBlue">
+                        <h4 class="font-bold text-base text-textMain"><i
+                                class="fa-solid fa-bolt text-googleBlue mr-2"></i>Gemini Flash</h4>
+                        <p class="text-xs text-textMuted mt-2 leading-relaxed">Kecepatan tinggi, efisien, jago coding &
+                            agentic workflow skala besar.</p>
+                    </div>
+                    <div class="clean-card p-5 flex flex-col justify-center border-l-4 border-l-googleRed">
+                        <h4 class="font-bold text-base text-textMain"><i
+                                class="fa-solid fa-gem text-googleRed mr-2"></i>Gemini Pro</h4>
+                        <p class="text-xs text-textMuted mt-2 leading-relaxed">Reasoning tingkat lanjut untuk
+                            matematika, sains (STEM), & analisis data kompleks.</p>
+                    </div>
+                    <div class="clean-card p-5 flex flex-col justify-center border-l-4 border-l-googleYellow">
+                        <h4 class="font-bold text-base text-textMain"><i
+                                class="fa-solid fa-feather text-googleYellow mr-2"></i>Gemini Flash-Lite</h4>
+                        <p class="text-xs text-textMuted mt-2 leading-relaxed">Performa setara model besar, tapi latensi
+                            super rendah & biaya paling minimal.</p>
+                    </div>
+                    <div class="clean-card p-5 flex flex-col justify-center border-l-4 border-l-googleGreen">
+                        <h4 class="font-bold text-base text-textMain"><i
+                                class="fa-solid fa-video text-googleGreen mr-2"></i>Gemini Omni Flash</h4>
+                        <p class="text-xs text-textMuted mt-2 leading-relaxed">Varian preview: gabungkan reasoning
+                            multimodal + pembuatan & edit video interaktif.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. MATERI INTI: PROMPT ENGINEERING (Yellow Accent) -->
+        <section class="slide">
+            <header class="mb-6">
+                <span
+                    class="text-googleYellow font-bold tracking-wider text-sm uppercase bg-yellow-50 px-4 py-1.5 rounded-full border border-yellow-200">
+                    <i class="fa-solid fa-pen-nib mr-2"></i>CORE
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Seni Prompt Engineering</h2>
+                <p class="text-textMuted mt-2 text-lg">Merancang instruksi sistematis menggunakan: <b
+                        class="text-textMain">System Instruction</b>, <b class="text-textMain">Context</b>, dan <b
+                        class="text-textMain">Few-shot Examples</b>.</p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[60vh] overflow-y-auto pb-4">
+                <!-- Bad Prompt -->
+                <div class="clean-card p-6 border-t-4 border-t-googleRed flex flex-col bg-surfaceLight">
+                    <div class="flex items-center gap-2 mb-4 text-googleRed">
+                        <i class="fa-solid fa-circle-xmark text-xl"></i>
+                        <h3 class="font-bold text-lg text-textMain">Prompt Buruk (Terlalu Biasa)</h3>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-lg font-mono text-sm text-textMuted mb-4 flex-1 border border-borderLight shadow-sm flex items-center">
+                        "Buatin ringkasan dari materi PDF jaringan komputer ini buat saya belajar ujian besok."</div>
+                    <div class="text-sm text-red-700 mt-auto bg-red-50 p-3 rounded-lg border border-red-200">
+                        <b class="text-googleRed">Kenapa buruk?</b> Tidak ada instruksi format, tidak jelas level
+                        bahasanya, dan outputnya bisa jadi sekadar paragraf panjang yang membosankan.
+                    </div>
+                </div>
+
+                <!-- Good Prompt -->
+                <div
+                    class="clean-card p-6 border-t-4 border-t-googleGreen flex flex-col relative overflow-hidden bg-surfaceLight">
+                    <div class="flex items-center gap-2 mb-4 text-googleGreen">
+                        <i class="fa-solid fa-circle-check text-xl"></i>
+                        <h3 class="font-bold text-lg text-textMain">Prompt Baik (Terstruktur & Kontekstual)</h3>
+                    </div>
+                    <div
+                        class="bg-white p-4 rounded-lg font-mono text-sm text-textMuted mb-4 flex-1 border border-borderLight shadow-sm leading-relaxed overflow-y-auto">
+                        <p class="mb-3"><span class="text-googleBlue font-bold">[System Instruction]</span> Kamu adalah
+                            "Tutor IT Pintar", asisten dosen yang ramah dan ahli menyederhanakan materi rumit.</p>
+                        <p class="mb-3"><span class="text-googleYellow font-bold">[Context]</span> Saya mahasiswa smt 3
+                            yang sedang belajar Jarkom, tapi susah fokus membaca teks panjang.</p>
+                        <p class="mb-1"><span class="text-googleGreen font-bold">[Task]</span> Buat ringkasan dari teks
+                            berikut. Format wajib:</p>
+                        <p class="mb-1">1. 3 Poin utama (gunakan bullet points + emoji).</p>
+                        <p class="mb-1">2. Analogi sederhana (misal: "IP Address itu ibarat rumah...").</p>
+                        <p class="mb-3">3. Berikan 1 kuis PG di akhir.</p>
+                        <p>Teks materi: {Tempelkan teks}</p>
+                    </div>
+                    <div class="text-sm text-green-700 mt-auto bg-green-50 p-3 rounded-lg border border-green-200">
+                        <b class="text-googleGreen">Kenapa baik?</b> Role jelas, ada konteks audiens, batasan format
+                        pasti, dan ada interaksi (kuis).
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. DEMO HASIL JADI (Blue Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleBlue font-bold tracking-wider text-sm uppercase bg-blue-50 px-4 py-1.5 rounded-full border border-blue-200">
+                    <i class="fa-solid fa-star mr-2"></i>SNEAK PEEK
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Kenalan Sama "AI Study Buddy" 🛠️</h2>
+                <p class="text-textMuted mt-2 text-lg">This is something I built before. Let's break down how it works
+                    together!</p>
+            </header>
+ 
+            <div class="clean-card p-8">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div class="md:col-span-2 space-y-4">
+                        <p class="text-xs font-bold text-textMuted uppercase tracking-wide mb-2"><i
+                                class="fa-solid fa-key text-googleBlue mr-1"></i>3 Kunci di Balik Layar</p>
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-8 h-8 rounded-full bg-googleBlue text-white flex items-center justify-center font-bold shrink-0">
+                                1</div>
+                            <div>
+                                <h4 class="font-bold text-textMain">Persona Jelas</h4>
+                                <p class="text-sm text-textMuted">System instruction: "Tutor Pintar" yang ramah & sabar.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-8 h-8 rounded-full bg-googleRed text-white flex items-center justify-center font-bold shrink-0">
+                                2</div>
+                            <div>
+                                <h4 class="font-bold text-textMain">Format Output Diatur</h4>
+                                <p class="text-sm text-textMuted">Diminta selalu keluar dalam bentuk kuis + koreksi +
+                                    semangat.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-8 h-8 rounded-full bg-googleGreen text-white flex items-center justify-center font-bold shrink-0">
+                                3</div>
+                            <div>
+                                <h4 class="font-bold text-textMain">Sudah Diuji & Direfine</h4>
+                                <p class="text-sm text-textMuted">Prompt ini hasil percobaan berkali-kali sebelum jadi
+                                    sebagus ini.</p>
+                            </div>
+                        </div>
+                        <div
+                            class="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100 text-sm text-textMain font-medium">
+                            <i class="fa-solid fa-arrow-turn-down mr-2 text-googleBlue"></i>Nanti di sesi Hands-On, kita
+                            bangun ulang ini bareng-bareng!
+                        </div>
+                        
+                    </div>
+                    <!-- Area live demo AI Study Buddy yang sudah di-deploy -->
+                    <a href="https://ai-study-buddy-243362489112.asia-southeast1.run.app" target="_blank"
+                        class="md:col-span-3 bg-gradient-to-br from-[#1a1a2e] to-[#16213e] rounded-xl overflow-hidden relative group cursor-pointer flex flex-col items-center justify-center text-center p-8"
+                        style="aspect-ratio: 16/9;">
+                        <div
+                            class="absolute top-4 left-4 flex items-center gap-2 bg-white/10 backdrop-blur px-3 py-1.5 rounded-full">
+                            <span class="w-2 h-2 rounded-full bg-googleGreen animate-pulse"></span>
+                            <span class="text-white text-xs font-bold tracking-wide">LIVE</span>
+                        </div>
+                        <i class="fa-solid fa-graduation-cap text-6xl text-white/90 mb-4"></i>
+                        <h4 class="text-white font-bold text-xl mb-2">AI Study Buddy</h4>
+                        <p class="text-white/60 text-sm mb-6">Asisten Belajar Interaktif — sudah live & bisa dicoba!</p>
+                        <span
+                            class="inline-flex items-center gap-3 bg-white text-textMain rounded-full pl-2 pr-5 py-2 shadow-lg group-hover:scale-105 transition font-bold text-sm">
+                            <span
+                                class="w-8 h-8 rounded-full bg-googleBlue flex items-center justify-center text-white shrink-0"><i
+                                    class="fa-solid fa-arrow-up-right-from-square text-xs"></i></span>
+                            Coba Live Demo
+                        </span>
+                    </a>
+                </div>
+ 
+                <!-- Video Demo: Proses Build Versi Pertama -->
+                <div class="mt-6 pt-6 border-t border-borderLight">
+                    <p class="text-xs font-bold text-textMuted uppercase tracking-wide mb-3"><i
+                            class="fa-solid fa-clapperboard text-googleRed mr-1"></i>Video Demo: Proses Build Versi Pertama</p>
+                    <a href="https://drive.google.com/file/d/1B-pV8WgG2lumlj-xSoj5U-0wdnyHBY5z/view?usp=sharing" target="_blank"
+                        class="clean-card p-8 flex flex-col items-center justify-center text-center bg-surfaceLight hover:shadow-md transition group cursor-pointer">
+                        <div
+                            class="inline-flex items-center gap-3 mx-auto bg-white border border-borderLight rounded-full pl-2 pr-5 py-2 shadow-sm group-hover:shadow-md group-hover:scale-105 transition">
+                            <span
+                                class="w-9 h-9 rounded-full bg-googleRed flex items-center justify-center text-white"><i
+                                    class="fa-solid fa-play text-xs ml-0.5"></i></span>
+                            <span class="text-sm font-bold text-textMain">Putar Video Demo Build Pertama</span>
+                        </div>
+                        <p class="text-xs text-textMuted mt-3">Lihat langsung proses eksperimen prompt sampai jadi
+                            "AI Study Buddy" versi awal — buka di Google Drive.</p>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 8. HANDS-ON / PRAKTIK (Green Accent) -->
+        <section class="slide">
+            <header class="mb-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span
+                            class="text-googleGreen font-bold tracking-wider text-sm uppercase bg-green-50 px-4 py-1.5 rounded-full border border-green-200">
+                            <i class="fa-solid fa-laptop-code mr-2"></i>Hands-On 
+                        </span>
+                        <h2 class="text-3xl font-extrabold mt-5">Ayo Bangun & Upgrade Bareng! 🚀</h2>
+                        <p class="text-textMuted mt-1">Kita bikin "AI Study Buddy" versi kita sendiri — plus 1 upgrade:
+                            bisa diajak diskusi kalau ada materi yang belum dipahami.</p>
+                    </div>
+
+                    <!-- Timer Widget -->
+                    <div class="clean-card px-5 py-3 flex flex-col items-center bg-white border-2 border-googleBlue relative shadow-sm"
+                        id="timer-widget">
+                        <div class="text-3xl font-mono font-bold text-googleBlue tracking-widest" id="time-display">
+                            20:00</div>
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="startTimer()"
+                                class="text-xs bg-googleGreen hover:bg-green-600 px-3 py-1.5 rounded-md text-white transition font-medium"><i
+                                    class="fa-solid fa-play"></i> Start</button>
+                            <button onclick="pauseTimer()"
+                                class="text-xs bg-googleYellow hover:bg-yellow-500 px-3 py-1.5 rounded-md text-white transition font-medium"><i
+                                    class="fa-solid fa-pause"></i> Pause</button>
+                            <button onclick="resetTimer()"
+                                class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-md transition font-medium"><i
+                                    class="fa-solid fa-rotate-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="clean-card p-5 mb-4 border-l-4 border-l-googleBlue bg-blue-50/30 flex items-center gap-4">
+                <div class="w-10 h-10 rounded-full bg-googleBlue text-white flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-textMain">Studi Kasus Bareng: AI Study Buddy <span
+                            class="text-googleGreen">v2</span></h3>
+                    <p class="text-xs text-textMuted">Sama seperti contoh yang barusan kita bahas, tapi kali ini kita
+                        tambah 1 kemampuan baru: bisa <b>diajak diskusi</b> kalau ada materi yang bikin bingung.</p>
+                </div>
+            </div>
+
+            <div
+                class="clean-card p-5 bg-gradient-to-br from-blue-50 to-white border-2 border-googleBlue mb-4 relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-100 rounded-full opacity-40"></div>
+                <div class="relative z-10">
+                    <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+                        <h4 class="font-bold text-sm text-textMain"><i
+                                class="fa-solid fa-clipboard-list mr-2 text-googleBlue"></i>Tinggal Copas, Langsung
+                            Jalan! 💙</h4>
+                        <button onclick="copyPrompt()" id="copy-btn"
+                            class="text-xs bg-googleBlue hover:bg-blue-700 text-white px-4 py-2 rounded-full font-bold transition flex items-center gap-2 shadow-sm">
+                            <i class="fa-solid fa-copy"></i> <span id="copy-btn-text">Salin Prompt</span>
+                        </button>
+                    </div>
+                    <p class="text-xs text-textMuted mb-3">1. Buka <b>aistudio.google.com</b> → Create New Prompt (Chat
+                        Prompt) &nbsp;•&nbsp; 2. Tempel ini ke kolom <b>System Instruction</b> &nbsp;•&nbsp; 3. Tempel
+                        materi kuliah kamu di kolom chat, klik <b>Run</b>!</p>
+                    <textarea id="prompt-text" readonly onwheel="event.stopPropagation();" style="overflow-y: scroll;"
+                        class="w-full h-48 bg-white border border-blue-200 rounded-xl p-4 text-xs font-mono text-blue-950 leading-relaxed resize-none shadow-inner cursor-text">Kamu adalah "Tutor Pintar", asisten belajar yang ramah, sabar, dan ahli menyederhanakan materi kuliah yang rumit — baik dari teks maupun dokumen (PDF/gambar) yang diberikan. Gunakan Bahasa Indonesia yang santai tapi sopan.
+
+Buatkan aplikasi web bernama "AI Study Buddy" — asisten belajar interaktif untuk mahasiswa.
+
+BAHASA:
+Seluruh antarmuka (UI), label tombol, placeholder, judul, dan semua teks yang tampil di layar HARUS menggunakan Bahasa Indonesia. Jangan ada teks berbahasa Inggris di tampilan aplikasi.
+
+INPUT MATERI:
+Sediakan 2 cara input materi, dengan tab/toggle untuk berpindah:
+1. Tab "Tempel Teks" — kotak teks besar dengan placeholder "Tempel materi kuliahmu di sini..."
+2. Tab "Upload Dokumen" — area drag-and-drop atau tombol upload untuk file PDF atau gambar (foto slide/catatan). Tampilkan nama file yang sudah diupload dan tombol "Hapus File" untuk mengganti.
+
+Setelah materi siap (teks atau file), tampilkan tombol "Proses Materi".
+
+FUNGSI UTAMA (output setelah diproses):
+Tampilkan hasil dalam beberapa tab/section yang bisa dipilih pengguna:
+
+1. 📝 RINGKASAN — 3 poin utama materi dalam bentuk bullet point dengan emoji, plus 1 analogi sederhana untuk konsep paling sulit.
+
+2. 🗂️ FLASHCARD — minimal 5 kartu flashcard interaktif. Setiap kartu punya sisi depan (istilah/pertanyaan singkat) dan sisi belakang (jawaban/penjelasan). Kartu bisa diklik untuk "membalik" (flip animation) menampilkan sisi belakang. Sediakan tombol navigasi "Sebelumnya" dan "Selanjutnya" untuk pindah antar kartu, plus indikator "Kartu 1 dari 5".
+
+3. 🧠 MINDMAP — visualisasi mindmap sederhana berbentuk struktur pohon/hierarki: 1 topik utama di tengah/atas, bercabang ke beberapa sub-topik, dan masing-masing sub-topik bisa bercabang lagi ke detail pendukung. Gunakan diagram visual (bukan cuma teks list) dengan garis penghubung antar node dan warna berbeda tiap cabang, menggunakan palet warna Google (biru #4285F4, merah #EA4335, kuning #FBBC05, hijau #34A853). Buat agar bisa di-zoom/pan jika mindmap-nya besar.
+
+4. ❓ KUIS — 3 soal pilihan ganda (masing-masing 4 opsi jawaban) berdasarkan materi. Opsi jawaban berbentuk tombol yang bisa diklik satu per satu, beri highlight hijau jika benar dan merah jika salah setelah dipilih, tampilkan penjelasan singkat di bawah tiap soal setelah dijawab. Di akhir kuis tampilkan skor total, misal "Skor kamu: 2 dari 3".
+
+Gunakan tab navigasi di atas untuk berpindah antar 4 section ini (Ringkasan, Flashcard, Mindmap, Kuis) tanpa perlu proses ulang.
+
+💬 DISKUSI LANJUTAN (fitur baru):
+Setelah hasil (ringkasan/flashcard/mindmap/kuis) ditampilkan, sediakan kolom chat kecil di bagian bawah halaman hasil dengan placeholder "Masih bingung? Tanya di sini...". Kolom ini memungkinkan user bertanya ulang atau minta penjelasan dengan cara lain untuk materi yang sama, tanpa perlu upload ulang materi. Jawaban dari mode diskusi ini ditampilkan sebagai bubble chat biasa (teks), terpisah dari tab hasil utama — bukan menggantikan tampilan ringkasan/flashcard/mindmap/kuis yang sudah ada.
+
+TAMPILAN (UI/UX):
+- Desain bersih, modern, ramah mahasiswa, dengan aksen warna Google.
+- Judul aplikasi "AI Study Buddy" di bagian atas beserta subjudul singkat.
+- Loading state dengan teks seperti "Sedang menganalisis materimu..." saat memproses.
+- Sertakan tombol "Proses Materi Lain" untuk reset semua input dan hasil, kembali ke tampilan awal.
+- Semua kartu/kotak konten pakai sudut membulat dan shadow tipis agar terlihat rapi.
+
+PERILAKU AI (SYSTEM INSTRUCTION):
+Gunakan system instruction berikut untuk model:
+
+"Kamu adalah 'Tutor Pintar', asisten belajar yang ramah, sabar, dan ahli menyederhanakan materi kuliah yang rumit — baik dari teks maupun dokumen (PDF/gambar) yang diberikan. Gunakan Bahasa Indonesia yang santai tapi sopan.
+
+Saat user pertama kali mengirim materi, analisis seluruh materi tersebut lalu WAJIB kembalikan respons HANYA dalam format JSON berikut tanpa teks tambahan apapun di luar JSON:
+{
+  \"ringkasan\": { \"poin_utama\": [array 3 string dengan emoji di depan], \"analogi\": \"string\" },
+  \"flashcard\": [array minimal 5 objek { \"depan\": \"string\", \"belakang\": \"string\" }],
+  \"mindmap\": { \"topik_utama\": \"string\", \"cabang\": [array objek { \"judul\": \"string\", \"detail\": [array string sub-poin] }] },
+  \"kuis\": [array 3 objek { \"pertanyaan\": \"string\", \"opsi\": [array 4 string], \"jawaban_benar\": index 0-3, \"penjelasan\": \"string\" }]
+}
+
+Namun, jika setelah itu user mengirim pesan lewat kolom Diskusi Lanjutan (misalnya bilang 'aku masih bingung', 'jelasin dengan cara lain dong', atau menanyakan ulang salah satu bagian), JANGAN balas dalam format JSON lagi — balas dengan kalimat biasa (teks natural), jelaskan ulang bagian yang membingungkan pakai analogi yang berbeda dari sebelumnya, dengan nada ramah dan sabar, lalu tutup jawabanmu dengan mengajak diskusi lebih lanjut. Lanjutkan mode ini selama user masih bertanya di kolom yang sama, sampai user memproses materi baru (baru kembali ke format JSON di atas)."
+
+TEKNIS:
+- Untuk upload dokumen (PDF/gambar), kirim file tersebut langsung ke model Gemini sebagai bagian dari request (gunakan kemampuan multimodal Gemini untuk membaca isi dokumen), jangan coba ekstrak teks secara manual di sisi kode.
+- Parse respons dari AI: jika responsnya berupa JSON, render ke masing-masing komponen (ringkasan, flashcard, mindmap, kuis). Jika responsnya berupa teks biasa (bukan JSON), tampilkan sebagai bubble chat di kolom Diskusi Lanjutan.
+- Untuk mindmap, render sebagai SVG atau diagram HTML/CSS sederhana, bukan sekadar teks bullet biasa.
+- Tangani error dengan pesan Bahasa Indonesia, contoh: "Maaf, terjadi kesalahan saat memproses. Coba lagi ya!"
+- Jika tidak ada teks maupun file yang diupload saat tombol "Proses Materi" diklik, tampilkan pesan: "Materinya belum ada nih, tempel teks atau upload dokumen dulu ya."
+- Validasi ukuran file upload (maksimal sekitar 10MB) dan tampilkan pesan Bahasa Indonesia jika terlalu besar: "Ukuran file terlalu besar, maksimal 10MB ya."</textarea>
+                    <p class="text-[10px] text-textMuted mt-1.5 italic">💡 Kalau tombol "Salin Prompt" nggak jalan
+                        (biasanya kalau file dibuka langsung tanpa hosting), klik tombolnya sekali lagi — teksnya bakal
+                        ke-select otomatis, tinggal tekan <b>Ctrl+C</b>.</p>
+                </div>
+            </div>
+
+            <div class="clean-card p-4 bg-blue-50/50 border border-blue-100 mb-4">
+                <p class="text-xs text-textMain"><i class="fa-solid fa-flask mr-2 text-googleBlue"></i><b>Contoh materi
+                        buat tes cepat</b> (kalau belum punya materi sendiri): <i class="text-textMuted">"Subnetting
+                        adalah proses membagi jaringan besar menjadi beberapa jaringan kecil (subnet) agar lebih efisien
+                        dan mudah dikelola."</i></p>
+            </div>
+
+            <div
+                class="p-3 bg-yellow-50 rounded-xl border border-yellow-200 text-sm text-yellow-800 font-semibold mb-4">
+                <i class="fa-solid fa-circle-info mr-2 text-googleYellow"></i>Setelah dapat hasil JSON-nya, coba ketik
+                <i>"aku masih bingung"</i> di chat — lihat AI-nya masuk ke mode diskusi! Angkat tangan kalau stuck,
+                fasilitator siap bantu.
+            </div>
+
+        </section>
+
+        <!-- 9. SHOWCASE (Yellow Accent) -->
+        <section class="slide">
+            <header class="mb-8 text-center mt-4">
+                <span
+                    class="text-googleYellow font-bold tracking-wider text-sm uppercase bg-yellow-50 px-4 py-1.5 rounded-full border border-yellow-200 inline-block">
+                    <i class="fa-solid fa-bullhorn mr-2"></i>Showcase 
+                </span>
+                <h2 class="text-4xl font-extrabold mt-6 mb-4 text-textMain">Waktunya Pamer Karya! 🎉</h2>
+                <p class="text-lg text-textMuted">Siapa yang mau sharing (share screen) karyanya?</p>
+            </header>
+
+            <div
+                class="flex-1 clean-card p-8 flex flex-col items-center justify-center border-dashed border-2 border-googleBlue bg-blue-50/20 relative overflow-hidden">
+
+                <!-- decorative confetti dots -->
+                <div class="absolute top-6 left-8 text-3xl float-slow" style="animation-delay:0s">🎊</div>
+                <div class="absolute top-10 right-10 text-3xl float-slow" style="animation-delay:0.6s">✨</div>
+                <div class="absolute bottom-8 left-12 text-3xl float-slow" style="animation-delay:1.2s">🎁</div>
+                <div class="absolute bottom-10 right-14 text-3xl float-slow" style="animation-delay:0.3s">⭐</div>
+
+                <div
+                    class="w-20 h-20 rounded-full bg-googleYellow/15 flex items-center justify-center mb-6 gentle-bounce">
+                    <i class="fa-solid fa-trophy text-4xl text-googleYellow"></i>
+                </div>
+
+
+
+                <div class="w-full max-w-md mx-auto">
+                    <svg viewBox="0 0 400 260" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+                        <!-- stage floor -->
+                        <ellipse cx="200" cy="235" rx="170" ry="14" fill="#f1f3f4" />
+                        <!-- spotlight cones -->
+                        <polygon points="120,0 180,0 230,220 90,220" fill="#FBBC05" opacity="0.12" />
+                        <polygon points="220,0 280,0 310,220 190,220" fill="#4285F4" opacity="0.10" />
+                        <!-- podium -->
+                        <rect x="255" y="150" width="70" height="75" rx="6" fill="#4285F4" />
+                        <rect x="255" y="150" width="70" height="14" rx="6" fill="#3367d6" />
+                        <circle cx="290" cy="180" r="10" fill="#ffffff" opacity="0.9" />
+                        <!-- presenter figure -->
+                        <circle cx="180" cy="118" r="22" fill="#EA4335" />
+                        <rect x="158" y="140" width="44" height="60" rx="16" fill="#EA4335" />
+                        <rect x="148" y="150" width="16" height="45" rx="8" fill="#EA4335" />
+                        <rect x="196" y="150" width="16" height="45" rx="8" fill="#EA4335"
+                            transform="rotate(-18 204 150)" />
+                        <!-- raised arm holding mic -->
+                        <circle cx="216" cy="112" r="7" fill="#EA4335" />
+                        <rect x="213" y="98" width="6" height="16" rx="3" fill="#5f6368" />
+                        <circle cx="216" cy="94" r="7" fill="#202124" />
+                        <!-- confetti -->
+                        <rect x="60" y="40" width="8" height="8" rx="2" fill="#34A853" transform="rotate(20 64 44)" />
+                        <rect x="330" y="60" width="8" height="8" rx="2" fill="#FBBC05"
+                            transform="rotate(-15 334 64)" />
+                        <circle cx="100" cy="90" r="5" fill="#4285F4" />
+                        <circle cx="320" cy="120" r="5" fill="#EA4335" />
+                        <rect x="80" y="150" width="7" height="7" rx="2" fill="#FBBC05" transform="rotate(35 83 153)" />
+                        <!-- audience silhouettes -->
+                        <circle cx="70" cy="210" r="12" fill="#dadce0" />
+                        <rect x="58" y="222" width="24" height="16" rx="8" fill="#dadce0" />
+                        <circle cx="105" cy="215" r="10" fill="#e8eaed" />
+                        <rect x="95" y="225" width="20" height="14" rx="7" fill="#e8eaed" />
+                    </svg>
+                    <p class="text-center text-sm font-bold text-textMain mt-2">Siapa yang berani menunjukkan hasilnya?
+                        🎤</p>
+                </div>
+
+                <p
+                    class="mt-8 text-sm font-bold text-textMain bg-yellow-50 border border-yellow-200 px-5 py-2 rounded-full">
+                    <i class="fa-solid fa-hand-point-up mr-2 text-googleYellow"></i>Nggak perlu desain sempurna — yang
+                    penting berani maju! 💪
+                </p>
+            </div>
+        </section>
+
+        <!-- 10. RECAP & CLOSING (Red Accent) -->
+        <section class="slide">
+            <header class="mb-8">
+                <span
+                    class="text-googleRed font-bold tracking-wider text-sm uppercase bg-red-50 px-4 py-1.5 rounded-full border border-red-200">
+                    <i class="fa-solid fa-flag-checkered mr-2"></i>Recap
+                </span>
+                <h2 class="text-3xl font-extrabold mt-5">Hari Ini vs Seterusnya</h2>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div class="clean-card p-6 border-t-4 border-t-googleBlue bg-blue-50/30">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-textMain"><i
+                            class="fa-solid fa-calendar-day text-googleBlue"></i> Pencapaian Hari Ini</h3>
+                    <ul class="space-y-3 text-sm text-textMuted font-medium">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-googleBlue mt-1"></i>
+                            Mengenal beda "chatting" biasa vs "building" instruksi.</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-googleBlue mt-1"></i>
+                            Memahami anatomi prompt (Role, Task, Context).</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-check text-googleBlue mt-1"></i>
+                            Berhasil membuat 1 prototipe AI mandiri di AI Studio.</li>
+                    </ul>
+                </div>
+                <div class="clean-card p-6 border-t-4 border-t-googleGreen bg-green-50/30">
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2 text-textMain"><i
+                            class="fa-solid fa-rocket text-googleGreen"></i> Besok & Seterusnya</h3>
+                    <ul class="space-y-3 text-sm text-textMuted font-medium">
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-googleGreen mt-1"></i>
+                            Implementasi hasil ke kode aplikasi (Get Code).</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-googleGreen mt-1"></i>
+                            Eksplorasi fitur Multimodal (analisis PDF, Gambar, Audio).</li>
+                        <li class="flex items-start gap-2"><i class="fa-solid fa-arrow-right text-googleGreen mt-1"></i>
+                            Ikut program komunitas Google Developer Groups (GDG)!</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Quote Section -->
+            <div class="clean-card p-6 text-center italic bg-surfaceLight border border-borderLight shadow-sm">
+                <h4 class="text-xl text-textMain font-medium">"Masa depan bukan milik AI, tapi milik mereka yang tahu
+                    cara <span class="text-googleBlue font-bold not-italic">berkolaborasi</span> dengannya."</h4>
+            </div>
+        </section>
+
+        <!-- 11. CLOSING SLIDE -->
+        <section class="slide justify-center items-center text-center">
+            <img src="https://www.gstatic.com/images/branding/googlelogo/svg/googlelogo_clr_74x24px.svg" alt="Google"
+                class="h-10 mb-6">
+            <h2 class="text-5xl md:text-7xl font-extrabold mb-6 text-gradient pb-2">Terima Kasih!</h2>
+            <p class="text-xl text-textMuted mb-12 max-w-2xl font-medium">Semoga sesi singkat ini menjadi pintu gerbang
+                kamu untuk berinovasi dan membangun solusi keren di masa depan.</p>
+
+
+            <div class="clean-card p-6 inline-flex flex-col md:flex-row gap-8 items-center text-left">
+                <div class="flex items-center gap-4">
+                    <img src="potoo.jpeg" alt="Safira"
+                        class="w-16 h-16 rounded-full shadow-sm border border-gray-200 object-cover">
+                    <div>
+                        <h3 class="font-bold text-lg text-textMain">Safira Nur Azkia</h3>
+                        <p class="text-sm font-semibold text-googleBlue">Google Student Ambassador</p>
+                        <p class="text-xs text-textMuted mt-1">GSAID261639</p>
+                    </div>
+                </div>
+                <div class="w-px h-16 bg-borderLight hidden md:block"></div>
+                <div class="text-sm text-textMuted space-y-2 font-medium">
+                    <p><i class="fa-regular fa-calendar text-googleRed w-5 text-center"></i> Minggu, 5 Juli 2026</p>
+                    <p><i class="fa-regular fa-clock text-googleYellow w-5 text-center"></i> 11:30 WIB</p>
+                    <p><i class="fa-solid fa-location-dot text-googleGreen w-5 text-center"></i> R. A-109 STT Terpadu
+                        Nurul Fikri</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- NAVIGATION FOOTER -->
+    <footer class="fixed bottom-0 w-full p-4 bg-white/90 backdrop-blur-md border-t border-borderLight z-50">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <button onclick="prevSlide()"
+                class="px-5 py-2.5 rounded-full bg-white border border-borderLight hover:bg-gray-50 text-textMain font-semibold transition flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                id="btn-prev">
+                <i class="fa-solid fa-chevron-left"></i> Prev
+            </button>
+
+            <div class="flex items-center gap-5">
+                <!-- Progress Dots -->
+                <div class="hidden md:flex gap-1.5" id="progress-dots">
+                    <!-- Injected by JS -->
+                </div>
+                <span
+                    class="text-sm text-textMuted font-bold font-mono bg-surfaceLight px-3 py-1 rounded-md border border-borderLight"
+                    id="slide-indicator">Slide 1 / 11</span>
+            </div>
+
+            <button onclick="nextSlide()"
+                class="px-5 py-2.5 rounded-full bg-googleBlue hover:bg-blue-700 text-white font-semibold transition flex items-center gap-2 shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
+                id="btn-next">
+                Next <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+        <!-- Progress Bar (Google Colors) -->
+        <div class="absolute top-0 left-0 h-[3px] transition-all duration-300" id="progress-bar"
+            style="width: 0%; background: linear-gradient(90deg, #4285F4, #EA4335, #FBBC05, #34A853);"></div>
+    </footer>
+
+    <!-- INTERACTIVE LOGIC (JavaScript) -->
+    <script>
+        // --- Navigation Logic ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const slideIndicator = document.getElementById('slide-indicator');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const progressBar = document.getElementById('progress-bar');
+        const progressDots = document.getElementById('progress-dots');
+
+        // Init Progress Dots
+        for (let i = 0; i < totalSlides; i++) {
+            const dot = document.createElement('div');
+            dot.className = `w-2 h-2 rounded-full transition-all duration-300 ${i === 0 ? 'bg-googleBlue w-5' : 'bg-gray-300'}`;
+            progressDots.appendChild(dot);
+        }
+
+        function updateUI() {
+            // Update Slides
+            slides.forEach((slide, index) => {
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update Text & Buttons
+            slideIndicator.innerText = `Slide ${currentSlide + 1} / ${totalSlides}`;
+            btnPrev.disabled = currentSlide === 0;
+
+            if (currentSlide === totalSlides - 1) {
+                btnNext.innerHTML = 'Selesai <i class="fa-solid fa-check"></i>';
+                btnNext.className = 'px-5 py-2.5 rounded-full bg-googleGreen hover:bg-green-600 text-white font-semibold transition flex items-center gap-2 shadow-md';
+            } else {
+                btnNext.innerHTML = 'Next <i class="fa-solid fa-chevron-right"></i>';
+                btnNext.className = 'px-5 py-2.5 rounded-full bg-googleBlue hover:bg-blue-700 text-white font-semibold transition flex items-center gap-2 shadow-md';
+            }
+
+            // Update Progress Bar & Dots
+            progressBar.style.width = `${((currentSlide + 1) / totalSlides) * 100}%`;
+
+            const dots = progressDots.children;
+            for (let i = 0; i < dots.length; i++) {
+                if (i === currentSlide) {
+                    // Pakai array warna Google untuk dots yang aktif biar lebih estetik
+                    const colors = ['bg-googleBlue', 'bg-googleRed', 'bg-googleYellow', 'bg-googleGreen'];
+                    const colorClass = colors[i % 4];
+                    dots[i].className = `w-5 h-2 rounded-full transition-all duration-300 ${colorClass}`;
+                } else {
+                    dots[i].className = 'w-2 h-2 rounded-full transition-all duration-300 bg-gray-300';
+                }
+            }
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                currentSlide++;
+                updateUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                updateUI();
+            }
+        }
+
+        // Keyboard Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Initialize UI
+        updateUI();
+
+        // --- Copy Prompt Logic (Slide 8 - Hands-On) ---
+        function copyPrompt() {
+            const textarea = document.getElementById('prompt-text');
+            const btnText = document.getElementById('copy-btn-text');
+
+            // Selalu select dulu, biar kalau clipboard API gagal, user tinggal Ctrl+C manual
+            textarea.removeAttribute('readonly');
+            textarea.focus();
+            textarea.select();
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textarea.value).then(() => {
+                    btnText.innerText = 'Tersalin!';
+                    textarea.setAttribute('readonly', true);
+                    setTimeout(() => { btnText.innerText = 'Salin Prompt'; }, 2000);
+                }).catch(() => {
+                    fallbackCopy(textarea, btnText);
+                });
+            } else {
+                fallbackCopy(textarea, btnText);
+            }
+        }
+
+        function fallbackCopy(textarea, btnText) {
+            try {
+                const success = document.execCommand('copy');
+                btnText.innerText = success ? 'Tersalin!' : 'Tekan Ctrl+C';
+            } catch (e) {
+                btnText.innerText = 'Tekan Ctrl+C';
+            }
+            setTimeout(() => { btnText.innerText = 'Salin Prompt'; textarea.setAttribute('readonly', true); }, 2500);
+        }
+
+        // --- Video Player Logic (Slide 5 - Gemini) ---
+        // GANTI URL DI BAWAH dengan link video kamu.
+        // Untuk YouTube: pakai format embed, contoh: https://www.youtube.com/embed/VIDEO_ID?autoplay=1
+        const GEMINI_VIDEO_URL = "https://www.youtube.com/embed/amnhF6BwzZQ?autoplay=1&rel=0&start=0&end=60";
+
+        function playGeminiVideo() {
+            const poster = document.getElementById('video-poster');
+            const playerWrap = document.getElementById('video-player-wrap');
+            const frame = document.getElementById('gemini-video-frame');
+            frame.src = GEMINI_VIDEO_URL;
+            poster.classList.add('hidden');
+            playerWrap.classList.remove('hidden');
+        }
+
+        function stopGeminiVideo() {
+            const poster = document.getElementById('video-poster');
+            const playerWrap = document.getElementById('video-player-wrap');
+            const frame = document.getElementById('gemini-video-frame');
+            frame.src = "";
+            playerWrap.classList.add('hidden');
+            poster.classList.remove('hidden');
+        }
+
+        // --- Timer Logic (20 Minutes) ---
+        let timeRemaining = 20 * 60; // 20 menit
+        let timerInterval = null;
+        const timeDisplay = document.getElementById('time-display');
+        const timerWidget = document.getElementById('timer-widget');
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) return;
+            timerWidget.classList.add('timer-active');
+            timerInterval = setInterval(() => {
+                if (timeRemaining > 0) {
+                    timeRemaining--;
+                    timeDisplay.innerText = formatTime(timeRemaining);
+
+                    if (timeRemaining <= 300) { timeDisplay.classList.replace('text-googleBlue', 'text-googleYellow'); }
+                    if (timeRemaining <= 60) { timeDisplay.classList.replace('text-googleYellow', 'text-googleRed'); }
+                } else {
+                    pauseTimer();
+                    timeDisplay.innerText = "WAKTU HABIS";
+                    timerWidget.classList.remove('timer-active');
+                    alert("Waktu Hands-on telah selesai! Mari kembali ke layar utama.");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerWidget.classList.remove('timer-active');
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timeRemaining = 20 * 60;
+            timeDisplay.innerText = formatTime(timeRemaining);
+            timeDisplay.classList.remove('text-googleYellow', 'text-googleRed');
+            timeDisplay.classList.add('text-googleBlue');
+        }
+    </script>
+</body>
+
+</html>
